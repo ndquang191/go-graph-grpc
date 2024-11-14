@@ -3,8 +3,8 @@ RUN apk --no-cache add gcc g++ make ca-certificates
 WORKDIR /go/src/github.com/ndquang191/go-graph-grpc
 COPY go.mod go.sum ./
 COPY vendor vendor
-COPY account account
-RUN GO111MODULE=on go build -mod vendor -o /go/bin/app ./account/cmd/account
+COPY catalog catalog
+RUN GO111MODULE=on go build -mod vendor -o /go/bin/app ./catalog/cmd/catalog
 
 FROM alpine:3.11
 WORKDIR /app

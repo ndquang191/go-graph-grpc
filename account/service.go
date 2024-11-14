@@ -2,13 +2,14 @@ package account
 
 import (
 	"context"
+
 	"github.com/segmentio/ksuid"
 )
 
 type Service interface {
-	PostAccount(ctx context.Context, name string) error
+	PostAccount(ctx context.Context, name string) (*Account, error)
 	GetAccountByID(ctx context.Context, id string) (*Account, error)
-	ListAccounts(ctx context.Context, skip uint, take uint64) ([]Account, error)
+	ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error)
 }
 
 type Account struct {
@@ -20,7 +21,7 @@ type accountService struct {
 	repository Repository
 }
 
-func newService(r Repository) Service {
+func NewService(r Repository) Service {
 	return &accountService{
 		repository: r,
 	}
@@ -32,7 +33,7 @@ func (s *accountService) PostAccount(ctx context.Context, name string) (*Account
 		ID:   ksuid.New().String(),
 	}
 
-	if err := s.repository.PutAccount(ctx, *a); err != nil {
+	if err := s.repository.PutAccount(ctx, &a); err != nil {
 		return nil, err
 	}
 	return &a, nil
@@ -43,7 +44,7 @@ func (s *accountService) GetAccountByID(ctx context.Context, id string) (*Accoun
 	return s.repository.GetAccountByID(ctx, id)
 }
 
-func (s *accountService) GetAccounts(ctx context.Context, skip uint, take uint64) ([]Account, error) {
+func (s *accountService) ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error) {
 
 	if take > 100 || (skip == 0 && take == 0) {
 		take = 100

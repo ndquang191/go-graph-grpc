@@ -1,6 +1,10 @@
+// protoc --go-out=./pb --go-grpc_out=./pb account.proto
+
 syntax = "proto3";
 
 package pb;
+
+option go_package = "./";
 
 message Account {
   string id = 1;

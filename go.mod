@@ -1,4 +1,4 @@
-module github.com/ndquang191/graphgogrpc
+module github.com/ndquang191/go-graph-grpc
 
 go 1.23.1
 
@@ -18,6 +18,7 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
+	github.com/tinrab/retry v1.0.0 // indirect
 	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/text v0.18.0 // indirect

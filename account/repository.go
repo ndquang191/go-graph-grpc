@@ -10,7 +10,7 @@ type Repository interface {
 	Close()
 	PutAccount(ctx context.Context, account *Account) error
 	GetAccountByID(ctx context.Context, id string) (*Account, error)
-	ListAccounts(ctx context.Context, skip uint, take uint64) ([]Account, error)
+	ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error)
 }
 
 type postgresRepository struct {
@@ -41,13 +41,13 @@ func (r *postgresRepository) Ping() error {
 	return r.db.Ping()
 }
 
-func (r *postgresRepository) PutAccount(ctx context.Context, account Account) error {
+func (r *postgresRepository) PutAccount(ctx context.Context, account *Account) error {
 	_, err := r.db.ExecContext(ctx, `INSERT INTO account (id, name) VALUES ($1, $2)`, account.ID, account.Name)
 	return err
 }
 
 func (r *postgresRepository) GetAccountByID(ctx context.Context, id string) (*Account, error) {
-	r.db.QueryRowContext(ctx, `SELECT id, name FROM account WHERE id = $1`, id)
+	row := r.db.QueryRowContext(ctx, `SELECT id, name FROM account WHERE id = $1`, id)
 
 	a := Account{}
 
@@ -58,7 +58,7 @@ func (r *postgresRepository) GetAccountByID(ctx context.Context, id string) (*Ac
 	return &a, nil
 }
 
-func (r *postgresRepository) ListAccounts(ctx context.Context, skip uint, take uint64) ([]Account, error) {
+func (r *postgresRepository) ListAccounts(ctx context.Context, skip uint64, take uint64) ([]Account, error) {
 	rows, err := r.db.QueryContext(ctx, `SELECT id, name FROM account LIMIT $1 OFFSET $2`, take, skip)
 	if err != nil {
 		return nil, err
