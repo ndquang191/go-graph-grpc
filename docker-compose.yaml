@@ -1,3 +1,103 @@
+version: "3.9"
+
 services:
-  account-service:
-  
+   # Account service
+   account:
+      build:
+         context: .
+         dockerfile: ./account/app.dockerfile
+      # ports:
+      #    - "8081:8080" # Expose service on port 8081
+      environment:
+         - DATABASE_URL=postgres://ndquang:123456@account_db/ndquang?sslmode=disable
+      depends_on:
+         - account_db
+      restart: on-failure
+
+   # Catalog service
+   catalog:
+      build:
+         context: .
+         dockerfile: ./catalog/app.dockerfile
+      # ports:
+      #    - "8082:8080" # Expose service on port 8082
+      environment:
+         - DATABASE_URL: http://catalog_db:9200
+      depends_on:
+         - catalog_db
+      restart: on-failure
+
+   # Order service
+   order:
+      build:
+         context: .
+         dockerfile: ./order/app.dockerfile
+      ports:
+         - "8083:8080" # Expose service on port 8083
+      environment:
+         - DATABASE_URL: postgres://ndquang:123456@order_db/ndquang?sslmode=disable
+         - ACCOUNT_SERVICE_URL: account:8080
+         - CATALOG_SERVICE_URL: catalog:8080
+
+      depends_on:
+         - order_db
+
+   # GraphQL Gateway
+   graphql:
+      build:
+         context: .
+         dockerfile: ./graphql/app.dockerfile
+      ports:
+         - "8080:8080" # Expose gateway on port 8080
+      depends_on:
+         - account
+         - catalog
+         - order
+      environment:
+         - ACCOUNT_SERVICE_URL: account:8080
+         - CATALOG_SERVICE_URL: catalog:8080
+         - ORDER_SERVICE_URL: order:8080
+      restart: on-failure
+
+   # Database for Account service
+   account_db:
+      build:
+         context: ./account
+         dockerfile: ./db.dockerfile
+      image: postgres:15
+      environment:
+         POSTGRES_USER: ndquang
+         POSTGRES_PASSWORD: 123456
+         POSTGRES_DB: gographgrpc
+      restart:
+         unless-stopped
+         # volumes:
+         #  - account_data:/var/lib/postgresql/data
+         # ports:
+         #  - "5433:5432" # Expose for local development
+
+   # Database for Catalog service
+   catalog_db:
+      image: docker.elastic.co/elasticsearch/elasticsearch:8.16.1
+      environment:
+         ES_JAVA_OPTS: -Xms1g -Xmx1g
+         discovery.type: single-node
+   # Database for Order service
+   order_db:
+      build:
+         context: ./order
+         dockerfile: ./db.dockerfile
+      environment:
+         POSTGRES_USER: ndquang
+         POSTGRES_PASSWORD: 123456
+         POSTGRES_DB: gographgrpc
+      # volumes:
+      #    - order_data:/var/lib/postgresql/data
+      # ports:
+      #    - "5435:5432" # Expose for local development
+      restart: unless-stopped
+
+volumes:
+   account_data:
+   catalog_data:
+   order_data:

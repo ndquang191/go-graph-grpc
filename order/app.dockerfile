@@ -16,19 +16,18 @@ RUN go mod download
 # Copy application source code
 COPY vendor vendor
 COPY order order
-COPY account account
-COPY catalog catalog
-COPY graphql graphql
+
 # Build the application
-RUN GO111MODULE=on go build -mod=vendor -o /go/bin/app ./graphql
+RUN GO111MODULE=on go build -mod=vendor -o /go/bin/app ./order/cmd/order
+
 # Use a minimal runtime image
 FROM alpine:3.18
 
 # Set the working directory
-WORKDIR /usr/bin
+WORKDIR /app
 
 # Copy the built application from the builder stage
-COPY --from=build /go/bin .
+COPY --from=build /go/bin/app .
 
 # Expose the application port
 EXPOSE 8080

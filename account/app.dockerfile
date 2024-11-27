@@ -1,13 +1,36 @@
-FROM golang:1.13.4-alpine3.11 AS build
-RUN apk --no-cache add gcc g++ make ca-certificates
+# Use a recent Golang image with Alpine
+FROM golang:1.23.1-alpine3.18 AS build
+
+# Install necessary build dependencies
+RUN apk add --no-cache gcc g++ make ca-certificates
+
+# Set the working directory
 WORKDIR /go/src/github.com/ndquang191/go-graph-grpc
+
+# Copy dependency files
 COPY go.mod go.sum ./
+
+# Download and verify dependencies
+RUN go mod download
+
+# Copy application source code
 COPY vendor vendor
 COPY account account
-RUN GO111MODULE=on go build -mod vendor -o /go/bin/app ./account/cmd/account
 
-FROM alpine:3.11
+# Build the application
+RUN GO111MODULE=on go build -mod=vendor -o /go/bin/app ./account/cmd/account
+
+# Use a minimal runtime image
+FROM alpine:3.18
+
+# Set the working directory
 WORKDIR /app
-COPY --from=build /go/bin .
+
+# Copy the built application from the builder stage
+COPY --from=build /go/bin/app .
+
+# Expose the application port
 EXPOSE 8080
-CMD ["app"]
+
+# Command to run the application
+CMD ["./app"]
